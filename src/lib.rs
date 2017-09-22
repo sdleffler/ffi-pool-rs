@@ -1,3 +1,8 @@
+//! # `ffi-pool`: useful object pool types for FFI code
+//!
+//! This crate contains some useful object pool types for interfacing with C code (at the moment,
+//! just `CStringPool`.)
+
 extern crate memchr;
 extern crate objpool;
 
@@ -12,8 +17,8 @@ pub struct NulError {
 }
 
 
-/// A pool of `CString`s which can be readily reused with `str`s for ease of FFI interactions.
-#[derive(Debug)]
+/// A thread-safe pool of `CString`s which can be readily reused with `str`s for ease of FFI interactions.
+#[derive(Debug, Clone)]
 pub struct CStringPool {
     pool: Arc<Pool<CString>>,
 }
