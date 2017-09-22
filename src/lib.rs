@@ -12,7 +12,9 @@ extern crate memchr;
 extern crate objpool;
 extern crate take_mut;
 
+use std::error::Error;
 use std::ffi::{CStr, CString};
+use std::fmt;
 use std::sync::Arc;
 
 use objpool::{Item, Pool};
@@ -23,6 +25,13 @@ use objpool::{Item, Pool};
 #[derive(Debug, Clone, Copy)]
 pub struct NulError {
     pub position: usize,
+}
+
+
+impl fmt::Display for NulError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "nul byte found in provided data at position: {}", self.position)
+    }
 }
 
 
