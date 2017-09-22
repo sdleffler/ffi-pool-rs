@@ -1,0 +1,8 @@
+[package]
+authors = ["Sean Leffler <sean@errno.com>"]
+name = "ffi-pool"
+version = "0.1.0"
+
+[dependencies]
+memchr = "1.0.1"
+objpool = "0.2.0"
