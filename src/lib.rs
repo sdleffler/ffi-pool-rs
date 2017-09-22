@@ -3,8 +3,17 @@
 //! This crate contains some useful object pool types for interfacing with C code (at the moment,
 //! just `CStringPool`.)
 
+
+#[cfg(test)]
+#[macro_use]
+extern crate lazy_static;
+
 extern crate memchr;
 extern crate objpool;
+extern crate take_mut;
+
+use std::ffi::{CStr, CString};
+use std::sync::Arc;
 
 use objpool::{Item, Pool};
 
@@ -28,7 +37,7 @@ impl CStringPool {
     /// Create a new pool with a given default capacity for newly allocated `CString`s.
     pub fn new(default_string_capacity: usize) -> CStringPool {
         CStringPool {
-            pool: Pool::new(|| {
+            pool: Pool::new(move || {
                 let vec = Vec::with_capacity(default_string_capacity);
 
                 // The `Vec` is empty and thus contains no nul bytes.
@@ -42,7 +51,7 @@ impl CStringPool {
     /// pool is at capacity will block until a new `CString` is available.
     pub fn with_capacity(pool_capacity: usize, default_string_capacity: usize) -> CStringPool {
         CStringPool {
-            pool: Pool::with_capacity(pool_capacity, || {
+            pool: Pool::with_capacity(pool_capacity, move || {
                 let vec = Vec::with_capacity(default_string_capacity);
 
                 // The `Vec` is empty and thus contains no nul bytes.
@@ -58,8 +67,8 @@ impl CStringPool {
         let str_ref = s.as_ref();
 
         // Ensure our str contains no nul bytes and is thus safe to inject into a `CString`.
-        if let Some(i) = memchr::memchr(0, str_ref) {
-            return Err(NulError(i));
+        if let Some(i) = memchr::memchr(0, str_ref.as_bytes()) {
+            return Err(NulError { position: i });
         }
 
         let mut item = self.pool.get();
@@ -89,20 +98,38 @@ impl CStringPool {
             let mut bytes = cstring.into_bytes();
 
             bytes.clear();
-            bytes.extend(str_ref.as_bytes());
+            bytes.extend(str_ref.to_bytes());
 
             // These bytes came from a `CStr`. There is no way they have a nul byte inside.
-            unsafe { CString::from_vec_unchecked(string) }
+            unsafe { CString::from_vec_unchecked(bytes) }
         });
 
-        Ok(item)
+        item
     }
 }
 
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    lazy_static! {
+        static ref POOL: CStringPool = CStringPool::new(128);
+    }
+
     #[test]
-    fn it_works() {
+    fn round_trip() {
+        let s = "foo";
+        let cstr = POOL.get_str(s).unwrap();
+
+        assert_eq!(cstr.to_str().unwrap(), s);
+    }
+
+
+    #[test]
+    #[should_panic]
+    fn bad_string() {
+        let s = "fo\0o";
+        let _cstr = POOL.get_str(s).unwrap();
     }
 }
