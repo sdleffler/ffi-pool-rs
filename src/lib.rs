@@ -26,6 +26,11 @@ pub struct NulError {
 }
 
 
+impl Error for NulError {
+    fn description(&self) -> &str { "nul byte found in data" }
+}
+
+
 /// A thread-safe pool of `CString`s which can be readily reused with `str`s for ease of FFI interactions.
 #[derive(Debug, Clone)]
 pub struct CStringPool {
