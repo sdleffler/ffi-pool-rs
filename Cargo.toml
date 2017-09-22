@@ -4,8 +4,15 @@ name = "ffi-pool"
 version = "0.1.0"
 
 description = "Object pool types useful for FFI code."
+documentation = "https://docs.rs/ffi-pool"
+homepage = "https://github.com/sdleffler/ffi-pool-rs"
+repository = "https://github.com/sdleffler/ffi-pool-rs"
 
+readme = "README.md"
 license = "MPL-2.0"
+
+keywords = ["pool", "ffi", "c", "string"]
+categories = ["development-tools::ffi", "concurrency", "memory-management"]
 
 [dependencies]
 memchr = "1.0.1"
